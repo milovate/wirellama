@@ -150,5 +150,10 @@ class PCAPUploadView(APIView):
         json_file_path =  'media/' +'json_files/' + file_obj.name.replace('.pcap', '.json')
         
         self.save_packet_data(json_file_path)
+        print(f" yeh haina {file_path}")
         
-        return JsonResponse({'status': 'success', 'message': 'File uploaded successfully'})
+        return render(request, 'pcap_upload/.html', {'file_path': file_path})
+    
+    def get(self, request, format=None):
+    
+        return render(request, 'pcap_upload/pcap_upload.html')

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PCAP Analyzer{% endblock %}</title>
+    {% block styles %}
+    <style>
+        :root {
+            --primary-color: #6200ee;
+            --secondary-color: #03dac6;
+            --background-color: #f3e5f5;
+            --text-color: #333;
+            --border-color: #b39ddb;
+            --error-color: #cf6679;
+        }
+        body {
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+        nav {
+            background-color: var(--primary-color);
+            padding: 1rem 0;
+        }
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+        }
+        nav ul li {
+            margin: 0 1rem;
+        }
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        h1, h2 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding: 1rem 0;
+            background-color: var(--primary-color);
+            color: white;
+        }
+    </style>
+    {% endblock %}
+</head>
+<body>
+    <nav>
+        <ul>
+          
+
+        </ul>
+    </nav>
+
+    <div class="container">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <footer>
+        <p>&copy; 2024 PCAP Analyzer. All rights reserved.</p>
+    </footer>
+
+    {% block scripts %}
+    {% endblock %}
+</body>
+</html>

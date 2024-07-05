@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Upload PCAP - PCAP Analyzer{% endblock %}
+
+{% block content %}
+    <h1>Upload PCAP File</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div style="display: flex; justify-content: center; margin-bottom: 2rem;">
+            <input type="file" id="file-upload" name="file" accept=".pcap" required style="display: none;">
+            <label for="file-upload" style="padding: 12px 24px; background-color: var(--secondary-color); color: var(--text-color); border-radius: 30px; cursor: pointer; transition: all 0.3s ease; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">
+                Choose PCAP File
+            </label>
+        </div>
+        <div style="text-align: center;">
+            <button type="submit" style="padding: 12px 24px; background-color: var(--primary-color); color: white; border: none; border-radius: 30px; cursor: pointer; transition: all 0.3s ease; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">
+                Upload and Analyze
+            </button>
+        </div>
+    </form>
+    <div id="result-container" style="margin-top: 2rem;"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const fileUpload = document.getElementById('file-upload');
+    const form = document.querySelector('form');
+    const resultContainer = document.getElementById('result-container');
+
+    fileUpload.addEventListener('change', function(event) {
+        const fileName = event.target.files[0].name;
+        document.querySelector('label[for="file-upload"]').textContent = fileName;
+    });
+
+    form.addEventListener('submit', function(event) {
+        event.preventDefault();
+        
+        const formData = new FormData(form);
+        
+        resultContainer.innerHTML = '<p style="text-align: center; color: var(--primary-color); font-weight: bold;">Uploading and processing file...</p>';
+
+        fetch('{% url "pcap-upload" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.text())
+        .then(html => {
+            resultContainer.innerHTML = html;
+        })
+        .catch(error => {
+            console.error('Error uploading file:', error);
+            resultContainer.innerHTML = '<p style="color: var(--error-color); font-weight: bold;">Error uploading file. Please try again.</p>';
+        });
+    });
+</script>
+{% endblock %}
