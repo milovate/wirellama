@@ -1,59 +1,314 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
-{% block title %}Upload PCAP - PCAP Analyzer{% endblock %}
+{% block title %}Wire LLama Chat{% endblock %}
+
+{% block styles %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+    :root {
+        --background-color: #ffffff;
+        --primary-color: #000000;
+        --secondary-color: #176475;
+        --border-color: #e0e0e0;
+        --hover-color: #f5f5f5;
+        --input-background: #f9f9f9;
+    }
+    body, html {
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        background-color: var(--background-color);
+        color: var(--primary-color);
+        height: 100%;
+    }
+    .container {
+        display: flex;
+        max-width: 1200px;
+        margin: 0 auto;
+        align-items: stretch;
+    }
+    .sidebar {
+        width: 250px;
+        padding: 20px;
+        border-right: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+        position: sticky;
+        top: 0;
+        height: 90vh;
+        overflow-y: auto;
+    }
+    .main-content {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+        overflow-y: auto;
+    }
+    .chat-container {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding: 20px 0;
+    }
+    .message {
+        margin-bottom: 20px;
+        padding: 15px;
+        border-radius: 8px;
+        max-width: 80%;
+    }
+    .user-message {
+        background-color: var(--input-background);
+        align-self: flex-end;
+        margin-left: auto;
+    }
+    .bot-message {
+        background-color: var(--background-color);
+        border: 1px solid var(--border-color);
+    }
+    .input-area {
+        padding: 20px 0;
+    }
+    .message-form, .file-upload-form {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+    .message-input, .file-input {
+        flex-grow: 1;
+        padding: 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 24px;
+        background-color: var(--input-background);
+        color: var(--primary-color);
+        font-size: 16px;
+    }
+    .send-button, .upload-button, .new-chat-button {
+        background-color: var(--secondary-color);
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 24px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s ease;
+    }
+    .send-button:hover, .upload-button:hover, .new-chat-button:hover {
+        opacity: 0.9;
+    }
+    .new-chat-button {
+        width: 100%;
+        margin-bottom: 20px;
+        text-align: left;
+        padding-left: 15px;
+    }
+    .sidebar-item {
+        padding: 10px 15px;
+        margin-bottom: 5px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+    .sidebar-item:hover {
+        background-color: var(--hover-color);
+    }
+    .logo {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 30px;
+        color: var(--secondary-color);
+    }
+    .file-upload-form {
+        margin-top: auto;
+    }
+    .chat-history {
+        margin-top: 20px;
+    }
+    .chat-history-item {
+        padding: 10px 15px;
+        margin-bottom: 5px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .chat-history-item:hover {
+        background-color: var(--hover-color);
+    }
+    .loader {
+        border: 4px solid var(--border-color);
+        border-top: 4px solid var(--secondary-color);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 20px auto;
+        display: none;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-    <h1>Upload PCAP File</h1>
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        <div style="display: flex; justify-content: center; margin-bottom: 2rem;">
-            <input type="file" id="file-upload" name="file" accept=".pcap" required style="display: none;">
-            <label for="file-upload" style="padding: 12px 24px; background-color: var(--secondary-color); color: var(--text-color); border-radius: 30px; cursor: pointer; transition: all 0.3s ease; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">
-                Choose PCAP File
-            </label>
+<div class="container">
+    <div class="sidebar">
+        <div class="logo">WireLLama</div>
+        <button class="new-chat-button" id="newChatButton">+ New Chat</button>
+        <div class="chat-history" id="chatHistory">
+            <!-- Chat history items will be dynamically added here -->
         </div>
-        <div style="text-align: center;">
-            <button type="submit" style="padding: 12px 24px; background-color: var(--primary-color); color: white; border: none; border-radius: 30px; cursor: pointer; transition: all 0.3s ease; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">
-                Upload and Analyze
-            </button>
+        <div class="sidebar-item">Guide & FAQ</div>
+        <div class="sidebar-item">Search</div>
+        <div class="sidebar-item">Settings</div>
+        <div class="sidebar-item">Logout</div>
+        <div>
+        <form class="file-upload-form" id="fileUploadForm" enctype="multipart/form-data" action="{% url 'pcap-upload' %}" method="post">
+            {% csrf_token %}
+            <input type="file" class="file-input" id="pcapFileInput" name="pcap_file" accept=".pcap,.pcapng" required>
+            <button type="submit" class="upload-button">Upload</button>
+        </form>
         </div>
-    </form>
-    <div id="result-container" style="margin-top: 2rem;"></div>
+    </div>
+    <div class="main-content">
+        <div class="chat-container" id="chatContainer">
+            <!-- Messages will be dynamically added here -->
+        </div>
+        <div class="loader" id="loader"></div>
+        <div class="input-area">
+            <form class="message-form" id="messageForm">
+                <input type="text" class="message-input" id="messageInput" placeholder="Ask about your PCAP file..." required>
+                <button type="submit" class="send-button">Send</button>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    const fileUpload = document.getElementById('file-upload');
-    const form = document.querySelector('form');
-    const resultContainer = document.getElementById('result-container');
+    const chatContainer = document.getElementById('chatContainer');
+    const messageForm = document.getElementById('messageForm');
+    const messageInput = document.getElementById('messageInput');
+    const fileUploadForm = document.getElementById('fileUploadForm');
+    const loader = document.getElementById('loader');
+    const chatHistory = document.getElementById('chatHistory');
+    const newChatButton = document.getElementById('newChatButton');
 
-    fileUpload.addEventListener('change', function(event) {
-        const fileName = event.target.files[0].name;
-        document.querySelector('label[for="file-upload"]').textContent = fileName;
+    let currentChatId = null;
+
+    newChatButton.addEventListener('click', () => {
+        currentChatId = Date.now().toString();
+        chatContainer.innerHTML = '';
+        updateChatHistory();
     });
 
-    form.addEventListener('submit', function(event) {
-        event.preventDefault();
-        
-        const formData = new FormData(form);
-        
-        resultContainer.innerHTML = '<p style="text-align: center; color: var(--primary-color); font-weight: bold;">Uploading and processing file...</p>';
+    fileUploadForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(fileUploadForm);
 
-        fetch('{% url "pcap-upload" %}', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}'
+        showLoader();
+
+        try {
+            const response = await fetch("{% url 'pcap-upload' %}", {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+            addMessage(data.message, 'bot-message');
+            updateChatHistory();
+        } catch (error) {
+            console.error('Error:', error);
+            addMessage('Sorry, there was an error uploading your PCAP file.', 'bot-message');
+        } finally {
+            hideLoader();
+        }
+    });
+
+    messageForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const message = messageInput.value.trim();
+        if (message) {
+            addMessage(message, 'user-message');
+            messageInput.value = '';
+            
+            showLoader();
+
+            try {
+                const response = await fetch("{% url 'pcap-chat' %}",{
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ message: message, chat_id: currentChatId })
+                });
+                const data = await response.json();
+                
+                addMessage(data["message"], 'bot-message');
+                updateChatHistory();
+            } catch (error) {
+                console.error('Error:', error);
+                addMessage('Sorry, there was an error processing your request.', 'bot-message');
+            } finally {
+                hideLoader();
             }
-        })
-        .then(response => response.text())
-        .then(html => {
-            resultContainer.innerHTML = html;
-        })
-        .catch(error => {
-            console.error('Error uploading file:', error);
-            resultContainer.innerHTML = '<p style="color: var(--error-color); font-weight: bold;">Error uploading file. Please try again.</p>';
-        });
+        }
     });
+
+    function addMessage(message, className) {
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('message', className);
+        messageElement.textContent = message;
+        chatContainer.appendChild(messageElement);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function showLoader() {
+        loader.style.display = 'block';
+    }
+
+    function hideLoader() {
+        loader.style.display = 'none';
+    }
+
+    function updateChatHistory() {
+        const chatItem = document.createElement('div');
+        chatItem.classList.add('chat-history-item');
+        chatItem.textContent = `Chat ${new Date().toLocaleString()}`;
+        chatItem.dataset.chatId = currentChatId;
+        chatItem.addEventListener('click', () => loadChat(currentChatId));
+        chatHistory.insertBefore(chatItem, chatHistory.firstChild);
+    }
+
+    function loadChat(chatId) {
+        // Here you would typically load the chat messages for the given chatId
+        // For this example, we'll just clear the chat and set a placeholder message
+        currentChatId = chatId;
+        chatContainer.innerHTML = '';
+        addMessage(`Loaded chat ${chatId}`, 'bot-message');
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Initialize the first chat
+    newChatButton.click();
 </script>
 {% endblock %}

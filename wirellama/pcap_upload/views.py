@@ -14,6 +14,53 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 import subprocess
 from django.core.exceptions import ValidationError
+from llama_agents.launchers.local import LocalLauncher
+from llama_agents.services import AgentService, ToolService
+from llama_agents.tools import MetaServiceTool
+from llama_agents.control_plane.server import ControlPlaneServer
+from llama_agents.message_queues.simple import SimpleMessageQueue
+from llama_agents.orchestrators.agent import AgentOrchestrator
+
+from llama_index.core.agent import FunctionCallingAgentWorker
+from llama_index.core.tools import FunctionTool
+from llama_index.llms.openai import OpenAI
+from llama_index.core import Settings
+from time import sleep
+from IPython.display import Markdown, display
+from llama_index.core import SQLDatabase
+from llama_index.core import Settings
+from llama_index.llms.together import TogetherLLM
+from sqlalchemy import (
+    create_engine,
+    MetaData,
+    Table,
+    Column,
+    String,
+    Integer,
+    select,
+)
+import nest_asyncio
+
+
+
+class CHATView(APIView):
+    
+    
+    def post(self, request, format=None):
+        print(request.data)
+        
+        with open('/home/milind/linux-github/wirellama/wirellama/pcap_upload/message.txt', 'w') as file:
+            file.write(request.data["message"])
+            # Run tllamatest.py after saving the message
+        
+        subprocess.run(["python3", "/home/milind/linux-github/wirellama/wirellama/pcap_upload/tllamatest.py"]) 
+        sleep(1)     
+        with open('/home/milind/linux-github/wirellama/wirellama/pcap_upload/output.txt', 'r') as file:
+            output = file.read()
+        
+        return JsonResponse({'message': output}, status=200)
+
+
 
 
 class PCAPUploadView(APIView):
@@ -114,12 +161,6 @@ class PCAPUploadView(APIView):
             
             }
             
-            # print("")
-            # print("")
-            # print("")
-            # print("")
-            # print("")
-            # print(new_packet_data)
             
             serializer = PacketDataSerializer(data=new_packet_data)
 
@@ -136,8 +177,17 @@ class PCAPUploadView(APIView):
         
             
 
+
     def post(self, request, format=None):
-        file_obj = request.data['file']
+        try:
+            # Use request.FILES for file uploads
+            print("Files received in POST request:", request.FILES.keys())
+            file_obj = request.FILES['pcap_file']
+        except KeyError:
+            # Return an error response if 'file' is not in request.FILES
+            print("Files received in POST request:", request.FILES.keys())
+            return JsonResponse({'error': 'No file part in the request'}, status=400)
+
         # Define the path within the media folder where the file will be saved
         file_path = 'pcap_files/' + file_obj.name
 
@@ -147,12 +197,13 @@ class PCAPUploadView(APIView):
         self.run_tshark(file_path, file_path.replace('.pcap', '.json'))
 
         print(file_path)  # Print the path where the file is saved
-        json_file_path =  'media/' +'json_files/' + file_obj.name.replace('.pcap', '.json')
+        json_file_path = 'media/' + 'json_files/' + file_obj.name.replace('.pcap', '.json')
         
         self.save_packet_data(json_file_path)
         print(f" yeh haina {file_path}")
         
-        return render(request, 'pcap_upload/.html', {'file_path': file_path})
+        
+        return JsonResponse({'message': 'File uploaded successfully'}, status=200)
     
     def get(self, request, format=None):
     
